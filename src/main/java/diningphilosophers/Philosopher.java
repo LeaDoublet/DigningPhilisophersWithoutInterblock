@@ -4,12 +4,15 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+// Classe "active", sous-classe de Thread
 public class Philosopher
         extends Thread {
 
     private static int seed = 1;
+    // Pour tirer au sort le temps nécessaire pour manger ou penser.
     private final Random myRandom = new Random(System.currentTimeMillis() + seed++);
     private final static int DELAY = 1000;
+    // Les deus baguettes du philosopehe
     private final ChopStick myLeftStick;
     private final ChopStick myRightStick;
     private boolean running = true;
@@ -26,7 +29,7 @@ public class Philosopher
             try {
                 think();
                 myLeftStick.take();
-                // think(); // Pour augmenter la probabilité d'interblocage
+                think(); // Pour augmenter la probabilité d'interblocage
                 myRightStick.take();
                 // success : process
                 eat();
