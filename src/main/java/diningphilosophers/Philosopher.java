@@ -25,8 +25,8 @@ public class Philosopher
 
     public Philosopher(String name, ChopStick left, ChopStick right) {
         super(name);
-        this.myLeftStick = right;
-        this.myRightStick = left;
+        this.myLeftStick = left;
+        this.myRightStick = right;
     }
 
     @Override
@@ -34,15 +34,9 @@ public class Philosopher
         while (running) {
             try {
                 think();
-                tableLock.lock();
-                try {
-                    myLeftStick.take();
-                    think(); // Pour augmenter la probabilité d'interblocage
-                    myRightStick.take();
-                } finally {
-                    tableLock.unlock();
-                }
-
+                myLeftStick.take();
+                think(); // Pour augmenter la probabilité d'interblocage
+                myRightStick.take();
                 // success : process
                 eat();
                 // release resources
