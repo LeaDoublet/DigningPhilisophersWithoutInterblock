@@ -1,31 +1,46 @@
 package diningphilosophers;
 
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 public class ChopStick {
 
     private static int stickCount = 0;
 
-    private boolean iAmFree = true;
     private final int myNumber;
+
+    private final Lock verrou = new ReentrantLock();
+
+    private final Condition libre = verrou.newCondition();
+
+    private boolean isFree = true;
 
     public ChopStick() {
         myNumber = ++stickCount;
     }
 
-    synchronized public void take() throws InterruptedException {
-        while (!iAmFree) {
-            wait();
-        }
-        // assert iAmFree;
-        iAmFree = false;
-        System.out.println("Stick " + myNumber + " Taken");
-        // Pas utile de faire notifyAll ici, personne n'attend qu'elle soit occupée
+    public void take() throws InterruptedException {
+        verrou.lock();
+        try {
+            while (!isFree) {
+                libre.await();
+            }
+            isFree = false;
+        }finally{
+        verrou.unlock();
     }
 
-    synchronized public void release() {
-        // assert !iAmFree;
-        System.out.println("Stick " + myNumber + " Released");
-        iAmFree = true;
-        notifyAll(); // On prévient ceux qui attendent que la baguette soit libre
+}
+
+    public void release() {
+        verrou.lock();
+        try{
+            isFree = true;
+            libre.signalAll();
+        } finally {
+            verrou.unlock();
+        }
     }
 
     @Override

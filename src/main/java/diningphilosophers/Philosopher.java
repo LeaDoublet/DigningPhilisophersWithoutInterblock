@@ -1,6 +1,9 @@
 package diningphilosophers;
 
 import java.util.Random;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,10 +20,13 @@ public class Philosopher
     private final ChopStick myRightStick;
     private boolean running = true;
 
+    private final Lock tableLock = new ReentrantLock(); //verrou global anti interblockage
+
+
     public Philosopher(String name, ChopStick left, ChopStick right) {
         super(name);
-        myLeftStick = left;
-        myRightStick = right;
+        this.myLeftStick = right;
+        this.myRightStick = left;
     }
 
     @Override
@@ -28,9 +34,15 @@ public class Philosopher
         while (running) {
             try {
                 think();
-                myLeftStick.take();
-                think(); // Pour augmenter la probabilité d'interblocage
-                myRightStick.take();
+                tableLock.lock();
+                try {
+                    myLeftStick.take();
+                    think(); // Pour augmenter la probabilité d'interblocage
+                    myRightStick.take();
+                } finally {
+                    tableLock.unlock();
+                }
+
                 // success : process
                 eat();
                 // release resources
